@@ -17,7 +17,7 @@ class DiaryController extends Controller
     {
         $diaries = Diary::with('likes')->orderBy('id', 'desc')->paginate(5);
 
-        return view('diaries.index',[
+        return view('diaries.index', [
             'diaries' => $diaries,
         ]);
     }
@@ -106,21 +106,21 @@ class DiaryController extends Controller
 
         if (\App::environment('heroku')) {
             $imgPath = Storage::disk('s3')
-                ->putFile('images/diaries' . Auth::user()->id . '/' . $dt->year . '/' . $dt->month,
-                $image,
+                ->putFile(
+                    'images/diaries' . Auth::user()->id . '/' . $dt->year . '/' . $dt->month,
+                    $image,
+                    'public'
+                );
+
+            return Storage::disk('s3')->url($imgPath);
+        } else
+
+            // Userごとに年/月のフォルダを作成して画像を保存
+            $imgPath = $image->store(
+                'images/diaries/' . Auth::user()->id . '/' . $dt->year . '/' . $dt->month,
                 'public'
             );
 
-            return Storage::disk('s3')->url($imgPath);
-        }
-
-        // Userごとに年/月のフォルダを作成して画像を保存
-        $imgPath = $image->store(
-            'images/diaries/' .Auth::user()->id . '/' . $dt->year . '/' . $dt->month,
-            'public'
-        );
-
         return 'storage/' . $imgPath;
-
     }
 }
